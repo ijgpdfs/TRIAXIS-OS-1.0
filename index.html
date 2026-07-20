@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIAXIS OS | OVERRIDE PROTOCOL</title>
+    
+    <!-- الخطوط التقنية والأساسية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root {
+            --vantablack: #000000;
+            --neon-red: #FF003C;
+            --metal-grey: #6c757d;
+            --pure-white: #ffffff;
+            --terminal-green: #00FF41;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none !important; /* إخفاء الماوس الافتراضي */
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--vantablack);
+            color: var(--pure-white);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* مؤشر الماوس المخصص */
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+        #custom-cursor::before, #custom-cursor::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+        }
+        #custom-cursor::before { top: 9px; left: 0; width: 20px; height: 2px; }
+        #custom-cursor::after { top: 0; left: 9px; width: 2px; height: 20px; }
+
+        /* الشاشة الصفرية - التيرمينال */
+        #terminal-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--vantablack);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--pure-white);
+        }
+        .terminal-line { margin-bottom: 10px; display: none; }
+        .caret { display: inline-block; width: 10px; height: 20px; background-color: var(--pure-white); animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* الواجهة الرئيسية */
+        #main-interface {
+            position: relative;
+            width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* الشبكة الخلفية المتحركة (الرادار) */
+        .grid-background {
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveGrid 30s linear infinite;
+            z-index: 1;
+        }
+        @keyframes moveGrid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* المحتوى المركزي */
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 900px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--metal-grey);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 60px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* الأزرار (الفخ النفسي) */
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        /* زر الهرب */
+        .btn-abort {
+            background: transparent;
+            border: 2px solid var(--neon-red);
+            color: var(--pure-white);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 20px 50px;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-abort:hover {
+            background: var(--neon-red);
+            color: var(--vantablack);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.4);
+        }
+
+        /* زر العبور (النسخة البارزة والواضحة) */
+        .btn-override {
+            background: rgba(255, 255, 255, 0.05); /* خلفية شبه شفافة لتمييز مساحة الزر */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* إطار تقني واضح */
+            color: var(--pure-white); /* لون أبيض ساطع */
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem; /* تكبير حجم الخط بشكل كبير */
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            padding: 20px 40px; /* تكبير مساحة الزر ليكون النقر عليه أسهل */
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        /* تأثير عند وضع الماوس (Hover) */
+        .btn-override:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--pure-white);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); /* توهج خفيف يبرز الزر */
+        }
+        
+        /* شريط التحميل داخل زر العبور */
+        .progress-bar-container {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 4px; /* جعل شريط التحميل أكثر سمكاً */
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--terminal-green); /* أخضر نيون */
+            box-shadow: 0 0 10px var(--terminal-green); /* توهج أخضر */
+        }
+
+        .error-message {
+            color: var(--neon-red);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem; /* تكبير رسالة الخطأ لتكون مقروءة بوضوح */
+            font-weight: bold;
+            position: absolute;
+            top: 100%;
+            margin-top: 15px;
+            opacity: 0;
+            white-space: nowrap;
+        }
+
+        /* العداد الوهمي */
+        .telemetry-data {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--metal-grey);
+            text-align: right;
+            z-index: 10;
+            opacity: 0.5;
+        }
+
+        /* تأثير Glitch العام */
+        .glitch-active {
+            animation: rgb-shift 0.1s infinite alternate;
+        }
+        @keyframes rgb-shift {
+            0% { text-shadow: 2px 0 0 red, -2px 0 0 blue; transform: translate(1px, 0); }
+            100% { text-shadow: -2px 0 0 red, 2px 0 0 blue; transform: translate(-1px, 0); }
+        }
+
+        /* فلاش أبيض للنجاح */
+        #white-flash {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: white;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- مؤشر الماوس -->
+    <div id="custom-cursor"></div>
+    <div id="white-flash"></div>
+
+    <!-- 1. الحالة الصفرية -->
+    <div id="terminal-screen">
+        <div class="terminal-line" id="line1">> INITIALIZING BIOLOGICAL SCAN...</div>
+        <div class="terminal-line" id="line2">> WEAKNESS DETECTED.</div>
+        <div class="terminal-line" id="line3">> ACCESS TO TRIAXIS OS IS RESTRICTED.</div>
+        <div class="caret" id="main-caret"></div>
+    </div>
+
+    <!-- 2. الواجهة الرئيسية -->
+    <div id="main-interface">
+        <div class="grid-background"></div>
+        
+        <div class="content-wrapper">
+            <h1>99% WILL CLOSE THIS PAGE.</h1>
+            <p class="subtitle">
+                That is by design. TRIAXIS OS is not a fitness program. It is a biological override.<br>
+                If you are looking for comfort, motivation, or a pat on the back, you are in the wrong place.<br>
+                I do not want your money if you are going to quit on Day 4.<br>
+                If you cannot execute instructions like a machine, leave now.
+            </p>
+
+            <!-- 3. منطقة الأزرار -->
+            <div class="buttons-container">
+                <a href="https://youtu.be/XqZsoesa55w?si=Plp_6hv155xx-fih" class="btn-abort">> ABORT. I AM NOT READY.</a>
+                
+                <button class="btn-override" id="btn-override">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    [ OVERRIDE PROTOCOL: ENTER TRIAXIS OS ]
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="hold-progress"></div>
+                    </div>
+                    <div class="error-message" id="hold-error">> LACK OF COMMITMENT.</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. التفاصيل الدقيقة -->
+        <div class="telemetry-data" id="telemetry">
+            IP: TRACKING...<br>
+            SYS_LOAD: 0.04%<br>
+            BIOMETRIC_EST: STABLE
+        </div>
+    </div>
+
+    <script>
+        // تتبع مؤشر الماوس
+        const cursor = document.getElementById('custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // مولد الصوت التقني (Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSuccessSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // تسلسل التيرمينال (الحالة الصفرية)
+        async function runTerminalSequence() {
+            const line1 = document.getElementById('line1');
+            const line2 = document.getElementById('line2');
+            const line3 = document.getElementById('line3');
+            
+            const typeWriter = (element, text, speed) => {
+                return new Promise(resolve => {
+                    element.style.display = 'block';
+                    element.innerHTML = '';
+                    let i = 0;
+                    function type() {
+                        if (i < text.length) {
+                            element.innerHTML += text.charAt(i);
+                            i++;
+                            setTimeout(type, speed);
+                        } else {
+                            resolve();
+                        }
+                    }
+                    type();
+                });
+            };
+
+            await typeWriter(line1, "> INITIALIZING BIOLOGICAL SCAN...", 30);
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await typeWriter(line2, "> WEAKNESS DETECTED.", 40);
+            await new Promise(r => setTimeout(r, 500));
+            
+            await typeWriter(line3, "> ACCESS TO TRIAXIS OS IS RESTRICTED.", 30);
+            await new Promise(r => setTimeout(r, 800));
+
+            // تأثير الجليتش الأحمر والانتقال
+            gsap.to("#terminal-screen", {
+                backgroundColor: "#FF003C",
+                duration: 0.1,
+                yoyo: true,
+                repeat: 3,
+                onComplete: () => {
+                    document.getElementById('terminal-screen').style.display = 'none';
+                    document.getElementById('main-interface').style.display = 'flex';
+                    
+                    // تحريك ظهور العناصر
+                    gsap.from("h1", {y: 50, opacity: 0, duration: 1, ease: "power4.out"});
+                    gsap.from(".subtitle", {y: 30, opacity: 0, duration: 1, delay: 0.2, ease: "power4.out"});
+                    gsap.from(".buttons-container", {y: 20, opacity: 0, duration: 1, delay: 0.4, ease: "power4.out"});
+                }
+            });
+        }
+
+        // تشغيل التسلسل عند التحميل
+        window.onload = runTerminalSequence;
+
+        // تحديث البيانات الوهمية (الزاوية السفلية)
+        setInterval(() => {
+            const load = (Math.random() * 0.1).toFixed(3);
+            const hexStr = Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+            document.getElementById('telemetry').innerHTML = `
+                NODE: 0x${hexStr}<br>
+                SYS_LOAD: ${load}%<br>
+                BIOMETRIC_EST: STABLE
+            `;
+        }, 1500);
+
+        // منطق زر العبور (الفخ)
+        const btnOverride = document.getElementById('btn-override');
+        const progressBar = document.getElementById('hold-progress');
+        const errorMsg = document.getElementById('hold-error');
+        let holdTween;
+
+        // تأثير الجليتش عند الـ Hover
+        btnOverride.addEventListener('mouseenter', () => {
+            document.body.classList.add('glitch-active');
+        });
+        btnOverride.addEventListener('mouseleave', () => {
+            document.body.classList.remove('glitch-active');
+        });
+
+        // آلية الضغط المطول
+        const startHold = () => {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            gsap.killTweensOf(errorMsg);
+            gsap.set(errorMsg, {opacity: 0});
+            
+            holdTween = gsap.to(progressBar, {
+                width: "100%",
+                duration: 3,
+                ease: "power1.inOut",
+                onComplete: () => {
+                    // النجاح
+                    playSuccessSound();
+                    document.body.classList.remove('glitch-active');
+                    
+                    // فلاش أبيض وتوجيه
+                    gsap.to("#white-flash", {
+                        opacity: 1,
+                        duration: 0.2,
+                        onComplete: () => {
+                            // التوجيه إلى صفحة المنتج
+                            window.location.href = "https://triaxisperformance.gumroad.com/l/triaxis"; 
+                        }
+                    });
+                }
+            });
+        };
+
+        const stopHold = () => {
+            if (holdTween && holdTween.isActive()) {
+                holdTween.kill();
+                gsap.to(progressBar, {width: "0%", duration: 0.2});
+                
+                // إظهار رسالة الفشل
+                gsap.to(errorMsg, {opacity: 1, y: 5, duration: 0.2});
+                setTimeout(() => gsap.to(errorMsg, {opacity: 0, duration: 0.5}), 2000);
+            }
+        };
+
+        btnOverride.addEventListener('mousedown', startHold);
+        btnOverride.addEventListener('mouseup', stopHold);
+        btnOverride.addEventListener('mouseleave', stopHold);
+
+        // دعم للهواتف (Touch events)
+        btnOverride.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(); });
+        btnOverride.addEventListener('touchend', (e) => { e.preventDefault(); stopHold(); });
+
+    </script>
+</body>
+</html>
