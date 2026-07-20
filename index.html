@@ -12,7 +12,36 @@
     
     <!-- مكتبة GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+/* --- إعدادات شاشات الهواتف --- */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 3rem; /* تصغير حجم العنوان الرئيسي ليناسب الهاتف */
+        line-height: 1.2;
+    }
+    
+    .content-wrapper {
+        padding: 10px;
+    }
 
+    .subtitle {
+        font-size: 0.95rem; /* تصغير النص الفرعي قليلاً */
+        margin-bottom: 40px;
+    }
+
+    .buttons-container {
+        gap: 20px; /* تقليل المسافة بين الأزرار */
+    }
+
+    .btn-abort {
+        font-size: 1.1rem;
+        padding: 15px 30px;
+    }
+
+    .btn-override {
+        font-size: 1.1rem;
+        padding: 15px 20px;
+    }
+}
     <style>
         :root {
             --vantablack: #000000;
