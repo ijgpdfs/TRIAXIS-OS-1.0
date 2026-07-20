@@ -13,16 +13,13 @@
     <!-- مكتبة GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
+/* --- إعدادات شاشات الهواتف --- */
 @media (max-width: 768px) {
     h1 {
-    font-size: 5rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    line-height: 1.2;
-    direction: rtl; 
-}
-        font-size: 3rem; 
+        font-size: 3rem;
         line-height: 1.2;
+        letter-spacing: normal;
+        direction: rtl;
     }
     
     .content-wrapper {
@@ -30,22 +27,30 @@
     }
 
     .subtitle {
-        font-size: 0.95rem; 
+        font-size: 0.95rem;
         margin-bottom: 40px;
     }
 
     .buttons-container {
-        gap: 20px; 
+        flex-direction: column;
+        gap: 15px;
     }
 
     .btn-abort {
+        width: 100%;
         font-size: 1.1rem;
-        padding: 15px 30px;
+        padding: 15px;
     }
 
     .btn-override {
+        width: 100%;
         font-size: 1.1rem;
-        padding: 15px 20px;
+        padding: 15px;
+        margin-left: 0;
+    }
+
+    .glitch-text {
+        font-size: 0.9rem;
     }
 }
     <style>
